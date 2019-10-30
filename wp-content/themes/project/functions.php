@@ -180,3 +180,97 @@ add_action( 'wp_footer', function () {
 // change default wordpress to custom authentication
 remove_filter( 'authenticate', 'wp_authenticate_username_password', 20 );
 add_filter( 'authenticate', 'wp_authenticate_username_phone_password', 20, 3 );
+
+
+define( 'ACTIVATION_GET_PARAM', 'act' );
+define( 'ACTIVATION_STATUS_META', 'account_activated' );
+define( 'ACTIVATION_CODE_META', 'activation_code' );
+
+
+add_action( 'init', function () {
+
+	if ( empty( $_GET[ ACTIVATION_GET_PARAM ] ) ) {
+		return false;
+	}
+
+	$error_msg = function () {
+		wc_add_notice( 'Email activation code is corrupted.', 'error' );
+
+		return false;
+	};
+
+	try {
+		$params    = unserialize( $_GET[ ACTIVATION_GET_PARAM ] );
+		$user_id   = ! empty( $params['id'] ) ? absint( $params['id'] ) : 0;
+		$user_code = sanitize_text_field( $params['code'] );
+	} catch ( \Exception $e ) {
+		return $error_msg();
+	}
+
+	if ( ! $user_id ) {
+		return $error_msg();
+	}
+
+	$real_code = get_user_meta( $user_id, ACTIVATION_CODE_META, true );
+
+	if ( empty( $real_code['email'] ) || $user_code !== $real_code['email'] ) {
+		return $error_msg();
+	} else {
+		$activated = get_user_meta( $user_id, ACTIVATION_STATUS_META, true );
+
+		if ( ! empty( $activated['email'] ) && 1 == $activated['email'] ) {
+			wc_add_notice( 'Email is already activated.', 'success' );
+		} else {
+			update_user_meta( $user_id, ACTIVATION_STATUS_META, array_merge( $activated, array( 'email' => 1 ) ) );
+			wc_add_notice( 'Email activation successful.', 'success' );
+		}
+	}
+} );
+
+
+function send_account_mail_activation( $address, $args ) {
+
+	// create the url (make it into a code to send it to user via email)
+	$url = get_site_url() . '/my-account/?' . ACTIVATION_GET_PARAM . '=' . base64_encode( serialize( $args ) );
+
+	// basically we will edit here to make this nicer
+	$html = sprintf( 'Please click the following links <br/><br/> <a href="%1$s">%1$s</a>', esc_url( $url ) );
+
+	// send an email out to user
+	wp_mail( $address, __( 'Email activation code' ), $html );
+}
+
+function send_account_phone_activation() {
+}
+
+function account_phone_activation_form() {
+}
+
+/**
+ * activate account by mail
+ */
+add_action( 'user_register', function ( $user_id ) {
+
+	// create the activation code and activation status
+	update_user_meta( $user_id, ACTIVATION_STATUS_META, [
+		'email' => 0,
+		'phone' => 0,
+	] );
+
+	$code = [
+		'email' => md5( time() ),
+		'phone' => rand( 1000, 9999 ),
+	];
+
+	update_user_meta( $user_id, ACTIVATION_CODE_META, $code );
+
+	// get user data
+	$user_info = get_userdata( $user_id );
+
+	send_account_mail_activation( $user_info->user_email, [
+		'id'   => $user_id,
+		'code' => $code['email'],
+	] );
+
+}, 10, 2 );
+
