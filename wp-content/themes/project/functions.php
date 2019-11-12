@@ -30,77 +30,25 @@ if ( ! defined( 'TPL' ) ) {
 	define( 'TPL', get_template_directory_uri() . '/' );
 }
 
-if ( ! function_exists( 'require_path' ) ) {
-	/**
-	 * @param string $path path to required file
-	 *
-	 * @return void
-	 */
-	function require_path( $path ) {
-		require __DIR__ . $path;
-	}
-}
+require 'inc/class/theme.php';
 
-if( !function_exists('init_theme') ) {
-    function init_theme() {
-    	/**
-		 * Include classes
-		 */
-		array_map( 'require_path', array(
-			'/inc/class/wp-bootstrap-navwalker.php',
-			'/inc/class/sms.ru.php',
-			'/inc/class/sms-provider.php',
-		) );
-
-		/**
-		 * Include required system files
-		 *
-		 * Редактировать файлы в папке system не рекомендуется, так как они обновляются, но..
-		 * Все классы и функции можно предопределить, объявив до подключения файла к примеру:
-		 * function breadcrumbs_by_yoast() { yoast_breadcrumb('<div class="breadcrumbs">','</div>'); }
-		 */
-		array_map( 'require_path', array(
-			'/inc/system/setup.php',         // *
-			'/inc/system/utilites.php',      // * Вспомогательные функции
-			'/inc/system/admin.php',         // * Фильтры и функции административной части WP
-			'/inc/system/tpl.php',           // * Основные функции вывода информации в шаблон
-			'/inc/system/navigation.php',    // * Навигация
-			'/inc/system/gallery.php',       // * Шаблон встроенной галереи wordpress
-			'/inc/system/customizer.php',    // * Дополнительные функии в настройки внешнего вида
-			'/inc/system/notifications.php', // * Дополнение к отправке уведомлений
-		) );
-
-		if ( class_exists( 'woocommerce' ) ) {
-			array_map( 'require_path', array(
-				'/inc/system/woocommerce.php',   // *
-				'/inc/system/wc-customizer.php', // *
-			) );
-		}
-    }
-}
-
-/**
- * Include custom files
- */
-array_map( 'require_path', array(
-	'/inc/assets.php',     // * Дополнительные ресурсы (Скрипты, стили..)
-	'/inc/widgets.php',    // * Сайдбар панели (Виджеты)
-	'/inc/post-types.php', // * Функции добавления типа записи slide
-	'/inc/shortcodes.php', // * Функции добавления шорткода
-) );
-
-/**
- * Include woocommerce custom files
- */
-if ( class_exists( 'woocommerce' ) ) {
-	array_map( 'require_path', array(
+$theme = new Theme( $require = array(
+	'class' => array(
+		'/inc/class/sms.ru.php',
+		'/inc/class/sms-provider.php',
+	),
+	'custom' => array(
+		'/inc/assets.php',     // * Дополнительные ресурсы (Скрипты, стили..)
+		'/inc/widgets.php',    // * Сайдбар панели (Виджеты)
+		'/inc/post-types.php', // * Функции добавления типа записи slide
+		'/inc/shortcodes.php', // * Функции добавления шорткода
+	),
+	'woocommerce' => array(
 		'/woocommerce/functions.php',          // * Функции магазина
 		'/woocommerce/template-functions.php', // * Функции и фильтры шаблона магазина
 		'/woocommerce/filters.php',            // * Объявление основных функций магазина
-	) );
-}
-
-init_theme();
+	),
+) );
 
 // Подключить скрипты и стили указанные в файле ./inc/assets.php
 add_action( 'wp_enqueue_scripts', 'enqueue_assets', 997 );
