@@ -1,4 +1,4 @@
-# New project wordpress theme boilerplate
+# New project WordPress Theme boilerplate
 
 ## Docker ##
 #### Настройки Базы данных ####
