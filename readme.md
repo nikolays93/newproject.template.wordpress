@@ -1,3 +1,16 @@
+# New project wordpress theme boilerplate
+
+## Docker ##
+#### Настройки Базы данных ####
+Пользователь по умолчанию: __root__ с паролем __root__  
+Таблица: __wordpress__ (уже создана)  
+При установке использовать __db__ вместо __localhost__  
+
+#### Образы ####
+- php:7.2-apache (mysqli, xdebug)
+- mariadb
+- adminer
+
 ## Структура шаблона ##
 
 ```

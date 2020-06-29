@@ -1,0 +1,32 @@
+version: '2'
+
+services:
+  webserver:
+    build: ./docker/php-apache
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./public_html:/var/www/html
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal
+    restart: always
+
+  db:
+    build: ./docker/mysql
+    ports:
+      - '3306:3306'
+    volumes:
+      - ./docker/data/db:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: root
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+    # command: mysqld --sql-mode=""
+    restart: always
+
+  adminer:
+    image: adminer
+    ports:
+        - '8080:8080'
